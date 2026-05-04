@@ -300,6 +300,92 @@
       line-height: 1.5;
     }
 
+    /* ── Arcade game cards ───────────────────────────────────────────────── */
+    .game-grid {
+      display: grid;
+      gap: 1.25rem;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+
+    /* Each game card is a full <a> link — the whole card is the interactive element */
+    a.game-card {
+      display: flex;
+      flex-direction: column;
+      background: var(--card-bg);
+      border: 1px solid var(--space-mid);
+      border-radius: 12px;
+      padding: 1.25rem;
+      transition: border-color 0.25s, box-shadow 0.25s, transform 0.2s;
+      color: var(--text-primary);
+      text-decoration: none;
+    }
+
+    a.game-card:hover {
+      border-color: var(--purple-core);
+      box-shadow: 0 0 20px rgba(120, 81, 169, 0.3);
+      transform: translateY(-2px);
+      text-decoration: none;
+    }
+
+    a.game-card:focus-visible {
+      outline: 3px solid var(--neon-blue);
+      outline-offset: 2px;
+    }
+
+    .game-card-icon  { font-size: 2rem; margin-bottom: 0.5rem; line-height: 1; }
+    .game-card-title { font-size: 1rem; font-weight: 700; margin-bottom: 0.3rem; }
+
+    .game-card-desc {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+      flex: 1;
+      margin-bottom: 0.75rem;
+    }
+
+    .game-card-badge {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 20px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+      align-self: flex-start;
+    }
+
+    .badge-red    { background: rgba(239,68,68,0.15);   color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+    .badge-gold   { background: rgba(255,215,0,0.15);   color: #f5c518; border: 1px solid rgba(255,215,0,0.3); }
+    .badge-teal   { background: rgba(126,255,216,0.1);  color: #7effd8; border: 1px solid rgba(126,255,216,0.3); }
+    .badge-purple { background: rgba(167,139,250,0.12); color: #a78bfa; border: 1px solid rgba(167,139,250,0.35); }
+
+    /* .play-btn is a <span> styled to look like a button — it is decorative
+       within the parent <a>; the <a> itself is the interactive element.
+       No aria-hidden needed: the parent <a>'s aria-label describes the card. */
+    .play-btn {
+      display: inline-block;
+      padding: 0.55rem 1.1rem;
+      min-height: 44px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.82rem;
+      align-self: flex-start;
+      transition: filter 0.2s, transform 0.15s;
+    }
+
+    a.game-card:hover .play-btn { filter: brightness(1.15); transform: scale(1.04); }
+
+    .play-btn-red          { background: #f87171; color: #1a0505; }
+    .play-btn-gold         { background: #f5c518; color: #1a1a2e; }
+    .play-btn-teal         { background: #7effd8; color: #0f172a; }
+    .play-btn-purple       { background: #7c3aed; color: #fff; }
+    .play-btn-purple-light { background: #a78bfa; color: #1a1035; }
+
+    @media (prefers-reduced-motion: reduce) {
+      a.game-card, a.game-card:hover, .play-btn { transition: none !important; transform: none !important; }
+    }
+
     /* ── Divider ─────────────────────────────────────────────────────────── */
     .divider {
       border: none;
@@ -555,6 +641,100 @@
               organization — partner domains, tooling, and lore archives.
             </p>
           </div>
+        </a>
+
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- ══ Arcade Games ══════════════════════════════════════════════════════ -->
+  <section class="section">
+    <div class="container">
+      <p class="section-label">🎮 Star Matrix Arcade</p>
+      <h2 class="section-title">Play the Games</h2>
+      <p class="section-desc">
+        Each card is a direct link — click or keyboard-navigate to open the game.
+        The entire card is the interactive element, so every entry point is fully
+        accessible to mouse, keyboard, and screen-reader users.
+      </p>
+
+      <div class="game-grid">
+
+        <!-- Matrix Act I -->
+        <a class="game-card"
+           href="https://amazinggracehl.org/arcade/matrix-act-1/"
+           target="_blank" rel="noopener noreferrer"
+           aria-label="Play Matrix Act I: Enter the Star Matrix">
+          <div class="game-card-icon" aria-hidden="true">🌌</div>
+          <div class="game-card-title">Matrix Act I</div>
+          <p class="game-card-desc">
+            Begin your journey into the Star Matrix. Face nine crossroads that
+            reveal the shape of your conscience and unlock the path forward.
+          </p>
+          <span class="game-card-badge badge-red">Act I · Entry</span>
+          <span class="play-btn play-btn-red">▶ Enter Matrix</span>
+        </a>
+
+        <!-- Seven Stars — embedded in the arcade lobby (no standalone URL) -->
+        <a class="game-card"
+           href="https://amazinggracehl.org/arcade/"
+           target="_blank" rel="noopener noreferrer"
+           aria-label="Play The Mystery of the Seven Stars at the arcade lobby">
+          <div class="game-card-icon" aria-hidden="true">⭐</div>
+          <div class="game-card-title">Seven Stars</div>
+          <p class="game-card-desc">
+            Journey through the seven churches of Asia Minor. Test your biblical
+            knowledge to collect all seven stars. Launched from the arcade lobby.
+          </p>
+          <span class="game-card-badge badge-gold">Knowledge Quest</span>
+          <span class="play-btn play-btn-gold">▶ Play Now</span>
+        </a>
+
+        <!-- Match Maker — embedded in the arcade lobby (no standalone URL) -->
+        <a class="game-card"
+           href="https://amazinggracehl.org/arcade/"
+           target="_blank" rel="noopener noreferrer"
+           aria-label="Play Match Maker at the arcade lobby">
+          <div class="game-card-icon" aria-hidden="true">🔮</div>
+          <div class="game-card-title">Match Maker</div>
+          <p class="game-card-desc">
+            Swap and match virtuous gems on a 7×7 board. Build combos and grow
+            your Conscience Meter. Launched from the arcade lobby.
+          </p>
+          <span class="game-card-badge badge-teal">Gem Puzzle</span>
+          <span class="play-btn play-btn-teal">▶ Play Now</span>
+        </a>
+
+        <!-- Star Matrix -->
+        <a class="game-card"
+           href="https://amazinggracehl.org/arcade/star-matrix/"
+           target="_blank" rel="noopener noreferrer"
+           aria-label="Play Star Matrix">
+          <div class="game-card-icon" aria-hidden="true">🌟</div>
+          <div class="game-card-title">Star Matrix</div>
+          <p class="game-card-desc">
+            Swap and match cosmic stars on a 7×7 grid. Chain combos, hit the
+            score target, and earn a completion certificate.
+          </p>
+          <span class="game-card-badge badge-purple">Match-3</span>
+          <span class="play-btn play-btn-purple">▶ Play Now</span>
+        </a>
+
+        <!-- Matrix of Conscience -->
+        <a class="game-card"
+           href="https://amazinggracehl.org/arcade/matrix-of-conscience/"
+           target="_blank" rel="noopener noreferrer"
+           aria-label="Play Matrix of Conscience">
+          <div class="game-card-icon" aria-hidden="true">🧠</div>
+          <div class="game-card-title">Matrix of Conscience</div>
+          <p class="game-card-desc">
+            Navigate nine moral crossroads from the Star Matrix journey. Your
+            choices reveal your Conscience Archetype.
+          </p>
+          <span class="game-card-badge badge-purple">Moral Choice</span>
+          <span class="play-btn play-btn-purple-light">▶ Play Now</span>
         </a>
 
       </div>
