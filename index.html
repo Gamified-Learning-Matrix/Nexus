@@ -359,7 +359,6 @@
     .badge-gold   { background: rgba(255,215,0,0.15);   color: #f5c518; border: 1px solid rgba(255,215,0,0.3); }
     .badge-teal   { background: rgba(126,255,216,0.1);  color: #7effd8; border: 1px solid rgba(126,255,216,0.3); }
     .badge-purple { background: rgba(167,139,250,0.12); color: #a78bfa; border: 1px solid rgba(167,139,250,0.35); }
-    .badge-violet { background: rgba(167,139,250,0.12); color: #a78bfa; border: 1px solid rgba(167,139,250,0.35); }
 
     /* .play-btn is a <span> styled to look like a button — it is decorative
        within the parent <a>; the <a> itself is the interactive element.
@@ -377,14 +376,14 @@
 
     a.game-card:hover .play-btn { filter: brightness(1.15); transform: scale(1.04); }
 
-    .play-btn-red    { background: #f87171; color: #1a0505; }
-    .play-btn-gold   { background: #f5c518; color: #1a1a2e; }
-    .play-btn-teal   { background: #7effd8; color: #0f172a; }
-    .play-btn-purple { background: #7c3aed; color: #fff; }
-    .play-btn-violet { background: #a78bfa; color: #1a1035; }
+    .play-btn-red          { background: #f87171; color: #1a0505; }
+    .play-btn-gold         { background: #f5c518; color: #1a1a2e; }
+    .play-btn-teal         { background: #7effd8; color: #0f172a; }
+    .play-btn-purple       { background: #7c3aed; color: #fff; }
+    .play-btn-purple-light { background: #a78bfa; color: #1a1035; }
 
     @media (prefers-reduced-motion: reduce) {
-      a.game-card, .play-btn { transition: none !important; transform: none !important; }
+      a.game-card, a.game-card:hover, .play-btn { transition: none !important; transform: none !important; }
     }
 
     /* ── Divider ─────────────────────────────────────────────────────────── */
@@ -678,31 +677,31 @@
           <span class="play-btn play-btn-red">▶ Enter Matrix</span>
         </a>
 
-        <!-- Seven Stars -->
+        <!-- Seven Stars — embedded in the arcade lobby (no standalone URL) -->
         <a class="game-card"
            href="https://amazinggracehl.org/arcade/"
            target="_blank" rel="noopener noreferrer"
-           aria-label="Play The Mystery of the Seven Stars">
+           aria-label="Play The Mystery of the Seven Stars at the arcade lobby">
           <div class="game-card-icon" aria-hidden="true">⭐</div>
           <div class="game-card-title">Seven Stars</div>
           <p class="game-card-desc">
             Journey through the seven churches of Asia Minor. Test your biblical
-            knowledge to collect all seven stars.
+            knowledge to collect all seven stars. Launched from the arcade lobby.
           </p>
           <span class="game-card-badge badge-gold">Knowledge Quest</span>
           <span class="play-btn play-btn-gold">▶ Play Now</span>
         </a>
 
-        <!-- Match Maker -->
+        <!-- Match Maker — embedded in the arcade lobby (no standalone URL) -->
         <a class="game-card"
            href="https://amazinggracehl.org/arcade/"
            target="_blank" rel="noopener noreferrer"
-           aria-label="Play Match Maker">
+           aria-label="Play Match Maker at the arcade lobby">
           <div class="game-card-icon" aria-hidden="true">🔮</div>
           <div class="game-card-title">Match Maker</div>
           <p class="game-card-desc">
             Swap and match virtuous gems on a 7×7 board. Build combos and grow
-            your Conscience Meter.
+            your Conscience Meter. Launched from the arcade lobby.
           </p>
           <span class="game-card-badge badge-teal">Gem Puzzle</span>
           <span class="play-btn play-btn-teal">▶ Play Now</span>
@@ -734,8 +733,8 @@
             Navigate nine moral crossroads from the Star Matrix journey. Your
             choices reveal your Conscience Archetype.
           </p>
-          <span class="game-card-badge badge-violet">Moral Choice</span>
-          <span class="play-btn play-btn-violet">▶ Play Now</span>
+          <span class="game-card-badge badge-purple">Moral Choice</span>
+          <span class="play-btn play-btn-purple-light">▶ Play Now</span>
         </a>
 
       </div>
