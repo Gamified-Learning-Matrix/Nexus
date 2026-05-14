@@ -1,0 +1,10 @@
+{
+  "gameId": "relic-runner",
+  "rooms": 8,
+  "artStyle": "Stellar Glass",
+  "palette": {
+    "primary": "#0A1A2F",
+    "accent": "#F2C94C"
+  },
+  "mechanics": "Two-page experience: Dungeon + Dossier"
+}
