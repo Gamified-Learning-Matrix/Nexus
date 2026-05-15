@@ -22,6 +22,6 @@ jobs:
 
       - name: Run Ministry Router
         run: |
-          node Ministry/Integration/index.mjs \
+          node Ministry/Integration/router.mjs \
             --event "$GITHUB_EVENT_NAME" \
             --payload "$GITHUB_EVENT_PATH"
