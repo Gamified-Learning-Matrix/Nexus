@@ -4,7 +4,7 @@
   "description": "Ella Core: Firebase Synchronization Module & Metadata Noise Generator",
   "main": "index.js",
   "dependencies": {
-    "firebase": "^10.0.0"
+    "firebase": "^12.13.0"
   },
   "scripts": {
     "sync": "node index.js"
