@@ -1,16 +1,15 @@
 # nicholai.org
-Gamification of game design and web development. 
 
 ---
 
 ##Codex Entry: The Nimbus Herald
 
-**Badge ID:** `BADGE_NIMBUS_HERALD`
+**Badge ID:** `BADGE_7`
 **Domain:** Voice of Jesus Ministry
 **Associated Star:** Electra 
 **Element:** Light / Sound
 
-### 📜 The Lore
+### Voice of Jesus Ministry 
 
 High above the heavy gravity of the world, past the creeping vines of doubt, lies the Star Road to Nimbus. It was a kingdom in the clouds, temporarily clouded by deception until a hero remembered his true heritage.
 
