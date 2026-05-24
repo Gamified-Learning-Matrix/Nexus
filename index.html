@@ -80,6 +80,22 @@
       white-space: nowrap;
     }
 
+    .hero-brand {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 0.9rem;
+    }
+
+    .hero-logo {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 1px solid rgba(180, 143, 224, 0.55);
+      box-shadow: 0 0 14px rgba(0, 207, 255, 0.35);
+      display: block;
+    }
+
     .hero-eyebrow {
       font-size: 0.78rem;
       letter-spacing: 0.22em;
@@ -417,6 +433,9 @@
   <!-- ══ Hero ══════════════════════════════════════════════════════════════ -->
   <header>
     <div class="container">
+      <a class="hero-brand" href="/" aria-label="Nexus home">
+        <img class="hero-logo" src="/Assets/logo.png" alt="Nexus logo" />
+      </a>
       <p class="hero-eyebrow">GulfNexus · Gamified Learning Matrix</p>
       <h1 class="hero-title">Star Road Portal</h1>
       <p class="hero-subtitle">
