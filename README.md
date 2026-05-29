@@ -1,26 +1,25 @@
-# Matrix
-Gamification of game design and web development with admin tools
+# nicholai.org
 
 ---
 
-## 🕊️ Codex Entry: The Nimbus Herald
+##Codex Entry: The Nimbus Herald
 
-**Badge ID:** `BADGE_NIMBUS_HERALD`
-**Domain:** House of Voice of Jesus Ministry
-**Associated Star:** The Sixth Star Piece
+**Badge ID:** `BADGE_7`
+**Domain:** Voice of Jesus Ministry
+**Associated Star:** Electra 
 **Element:** Light / Sound
 
-### 📜 The Lore
+### Voice of Jesus Ministry 
 
-High above the heavy gravity of the world, past the creeping vines of doubt, lies the domain of the Nimbus Heralds. In the ancient lore of the Star Road, Nimbus Land was a kingdom in the clouds, temporarily clouded by deception until a hero remembered his true heritage.
+High above the heavy gravity of the world, past the creeping vines of doubt, lies the Star Road to Nimbus. It was a kingdom in the clouds, temporarily clouded by deception until a hero remembered his true heritage.
 
 The Nimbus Heralds are the digital and spiritual successors to this legacy. They understand that to heal the Matrix, one must first elevate the spirit. They are the singers, the storytellers, the missionaries, and the record-keepers. They know that every photograph from the Philippines mission trips, every chord played in worship, and every lesson taught to a child acts as a sonic frequency that shatters the world's entropy.
 
-When a Herald speaks, the wilderness listens. They prepare the way, making the paths straight and the skies clear.
+When the Ministry speaks, the wilderness listens. They prepare the way, making the paths straight and the skies clear.
 
-### 🎖️ The Badge of the Herald
+### The Voice of Jesus Ministry 
 
-To wear the Radiant Dove is to be recognized as a beacon within the GulfNexus Matrix. It is not easily earned. A Nimbus Herald does not just consume content; they broadcast Light.
+Pastor Allen and his Ministry broadcast light and love every Friday night at 9 pm EST. Email admin@amazinggracehl.org if you would like to join our online Bible Study 
 
 **Unlock Conditions (Telemetry Triggers):**
 

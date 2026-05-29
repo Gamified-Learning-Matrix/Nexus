@@ -1,0 +1,41 @@
+// Ella Core: Firebase Synchronization Module
+import { initializeApp } from "firebase/app";
+import { getFirestore, doc, setDoc, serverTimestamp } from "firebase/firestore";
+
+// The parameters you provided have been integrated
+const firebaseConfig = {
+  apiKey: "AIza...", // Logic Shield Enabled
+  authDomain: "nexus-amazing-grace.firebaseapp.com",
+  projectId: "nexus-amazing-grace",
+  storageBucket: "nexus-amazing-grace.appspot.com",
+  messagingSenderId: "...",
+  appId: "...",
+  measurementId: "..."
+};
+
+// Initialize the Matrix Connection
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/**
+ * Pushes Ella's Evolution Stats to the Nexus Agentic Relay
+ * @param {string} playerId - The unique ID of the Star Guardian
+ * @param {number} awareness - The current Awareness Gain
+ * @param {number} integrity - The Integrity Impact score
+ */
+export const saveEvolutionStats = async (playerId, awareness, integrity) => {
+  const playerRef = doc(db, "star_guardians", playerId);
+  try {
+    await setDoc(playerRef, {
+      last_sync: serverTimestamp(),
+      stats: {
+        awareness_gain: awareness,
+        integrity_impact: integrity
+      },
+      protocol: "White Rabbit V2"
+    }, { merge: true });
+    console.log("Stellar Sync Complete: L Signals transmitted.");
+  } catch (error) {
+    console.error("Transmission Interrupted by Red Queen entropy:", error);
+  }
+};

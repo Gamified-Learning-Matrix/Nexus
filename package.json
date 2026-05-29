@@ -1,0 +1,14 @@
+{
+  "name": "matrix-core-ella",
+  "version": "1.0.0",
+  "description": "Ella Core: Firebase Synchronization Module & Metadata Noise Generator",
+  "main": "index.js",
+  "dependencies": {
+    "firebase": "^12.13.0"
+  },
+  "scripts": {
+    "sync": "node index.js"
+  },
+  "author": "The White Rabbit",
+  "license": "MIT"
+}
