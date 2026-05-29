@@ -40,6 +40,8 @@ let lastBadgeText = "";
 /* Set badge colour once at startup instead of on every request */
 chrome.action.setBadgeBackgroundColor({ color: "#00f3ff" });
 
+const monitoredUrls = chrome.runtime.getManifest().host_permissions || [];
+
 chrome.webRequest.onCompleted.addListener(
   (_details) => {
     requestCount++;
@@ -49,12 +51,12 @@ chrome.webRequest.onCompleted.addListener(
       chrome.action.setBadgeText({ text });
     }
   },
-  { urls: ["<all_urls>"] }
+  { urls: monitoredUrls }
 );
 
 chrome.webRequest.onErrorOccurred.addListener(
   (_details) => {
     /* Silently track errors — available in popup via storage */
   },
-  { urls: ["<all_urls>"] }
+  { urls: monitoredUrls }
 );
