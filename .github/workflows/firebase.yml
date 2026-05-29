@@ -39,9 +39,9 @@ jobs:
 
       - name: Check for placeholder content
         run: |
-          deployable_files="$(find . -maxdepth 1 -type f \( -name '*.html' -o -name '*.json' \) -print)"
-          if grep -RInE "lorem ipsum|coming soon|todo|placeholder" \
-            $deployable_files arcade; then
+          if find . -maxdepth 1 -type f \( -name '*.html' -o -name '*.json' \) -print0 \
+            | xargs -0r grep -InE "lorem ipsum|coming soon|todo|placeholder" \
+            || grep -RInE "lorem ipsum|coming soon|todo|placeholder" arcade; then
             echo "Placeholder content found in deployable content"
             exit 1
           fi
