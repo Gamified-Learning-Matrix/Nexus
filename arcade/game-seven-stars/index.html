@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seven Stars — Arcade OS</title>
+  <style>
+    :root {
+      --bg:#050510; --bg-panel:#0a0a1e; --bg-card:#10102a;
+      --cyan:#00cfff; --gold:#f5c518; --green:#00e676;
+      --purple:#7851a9; --purple-light:#b48fe0;
+      --text:#e8e0ff; --text-muted:#6a7a9a;
+      --border:rgba(0,207,255,0.18);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+    a{color:var(--cyan);text-decoration:none;}
+    nav{background:var(--bg-panel);border-bottom:1px solid var(--border);padding:0.65rem 1.25rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+    .nav-brand{font-size:0.9rem;font-weight:800;color:var(--gold);letter-spacing:0.1em;}
+    .nav-links{display:flex;gap:0.85rem;margin-left:auto;}
+    .nav-links a{font-size:0.8rem;color:var(--text-muted);}
+    .hero{text-align:center;padding:2.5rem 1.5rem;background:linear-gradient(135deg,var(--bg-panel),#1a1205);border-bottom:2px solid var(--gold);}
+    .hero h1{font-size:clamp(1.6rem,4vw,2.4rem);font-weight:800;background:linear-gradient(90deg,var(--gold),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:0.5rem;}
+    .hero p{color:var(--text-muted);max-width:520px;margin:0 auto 1.5rem;}
+    .btn{display:inline-block;padding:0.5rem 1.3rem;border-radius:7px;font-weight:700;font-size:0.88rem;cursor:pointer;border:1px solid var(--gold);background:rgba(245,197,24,0.1);color:var(--gold);transition:filter 0.2s;margin:0 0.25rem;}
+    .btn:hover{filter:brightness(1.2);text-decoration:none;}
+    .container{max-width:900px;margin:2rem auto;padding:0 1.5rem;}
+    .stars-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem;}
+    .star-card{background:var(--bg-card);border:2px solid var(--border);border-radius:12px;padding:1.25rem;text-align:center;cursor:pointer;transition:border-color 0.2s,box-shadow 0.2s,transform 0.2s;}
+    .star-card:hover{border-color:var(--gold);box-shadow:0 0 16px rgba(245,197,24,0.35);transform:translateY(-3px);}
+    .star-card.unlocked{border-color:var(--gold);background:rgba(245,197,24,0.07);}
+    .star-card.locked{opacity:0.45;cursor:default;}
+    .star-icon{font-size:2.5rem;margin-bottom:0.5rem;line-height:1;}
+    .star-name{font-weight:800;font-size:0.95rem;margin-bottom:0.25rem;}
+    .star-name.gold{color:var(--gold);}
+    .star-desc{font-size:0.78rem;color:var(--text-muted);line-height:1.4;}
+    .star-status{display:inline-block;margin-top:0.5rem;padding:2px 10px;border-radius:20px;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;}
+    .star-status.unlocked{background:rgba(245,197,24,0.15);border:1px solid rgba(245,197,24,0.4);color:var(--gold);}
+    .star-status.locked{background:rgba(100,100,150,0.15);border:1px solid rgba(100,100,150,0.3);color:var(--text-muted);}
+    footer{background:var(--bg-panel);border-top:1px solid var(--border);text-align:center;padding:1rem;font-size:0.78rem;color:var(--text-muted);margin-top:3rem;}
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-brand">🌟 Seven Stars</div>
+  <div class="nav-links">
+    <a href="../index.html">🎮 Arcade OS</a>
+    <a href="../../index.html">⭐ Star Road</a>
+  </div>
+</nav>
+<div class="hero">
+  <h1>🌟 The Seven Stars</h1>
+  <p>Collect all seven Star Pieces to restore harmony to Star Road. Each star unlocks a new domain of the Gulf Nexus Kingdom.</p>
+  <button class="btn" onclick="unlockNext()">⭐ Claim Next Star</button>
+  <button class="btn" onclick="resetStars()">↺ Reset</button>
+</div>
+<div class="container">
+  <div class="stars-grid" id="starsGrid"></div>
+  <p id="completeMsg" style="text-align:center;font-size:1rem;color:var(--gold);font-weight:800;min-height:1.5em;"></p>
+</div>
+<footer>Arcade OS · Seven Stars · Gulf Nexus</footer>
+<script>
+const STARS=[
+  {icon:"⭐",name:"Star of Wisdom",   desc:"Unlocks the Learning Matrix and Gamified Curriculum.",  domain:"Gamified Learning"},
+  {icon:"🌈",name:"Star of Harmony",  desc:"Connects the Seven Houses through Star Road telemetry.", domain:"Star Road"},
+  {icon:"🏠",name:"Star of Shelter",  desc:"Activates the Amazing Grace housing ministry network.",  domain:"Amazing Grace"},
+  {icon:"🎵",name:"Star of Voice",    desc:"Opens the Voice of Jesus media and gallery ascension.",   domain:"Voice of Jesus"},
+  {icon:"⚡",name:"Star of Power",    desc:"Unlocks Sovereign Matrix Administration access.",         domain:"Sovereign Matrix"},
+  {icon:"🌿",name:"Star of Grace",    desc:"Restores the Limitless Nexus sanctuary and mission hub.", domain:"Limitless Nexus"},
+  {icon:"👑",name:"Star of Nexus",    desc:"The final star — grants Gulf Nexus Kingdom sovereignty.", domain:"Gulf Nexus Crown"},
+];
+
+let unlocked=[];
+try{unlocked=JSON.parse(localStorage.getItem("gnx_stars")||"[]");}catch{}
+
+function save(){localStorage.setItem("gnx_stars",JSON.stringify(unlocked));}
+
+function render(){
+  const g=document.getElementById("starsGrid");
+  g.innerHTML="";
+  STARS.forEach((s,i)=>{
+    const div=document.createElement("div");
+    const isUnlocked=unlocked.includes(i);
+    div.className="star-card"+(isUnlocked?" unlocked":" locked");
+    div.innerHTML=`<div class="star-icon">${s.icon}</div>
+      <div class="star-name gold">${s.name}</div>
+      <div class="star-desc">${s.desc}</div>
+      <div style="font-size:0.68rem;color:var(--text-muted);margin-top:4px;">Domain: ${s.domain}</div>
+      <div class="star-status ${isUnlocked?"unlocked":"locked"}">${isUnlocked?"Unlocked":"Locked"}</div>`;
+    g.appendChild(div);
+  });
+  const all=unlocked.length===STARS.length;
+  document.getElementById("completeMsg").textContent=all?"🌟 ALL SEVEN STARS COLLECTED — GULF NEXUS KINGDOM RESTORED! 🌟":"";
+}
+
+function unlockNext(){
+  const next=STARS.findIndex((_,i)=>!unlocked.includes(i));
+  if(next===-1){alert("All seven stars already collected!");return;}
+  unlocked.push(next);save();render();
+}
+
+function resetStars(){unlocked=[];save();render();}
+render();
+</script>
+</body>
+</html>

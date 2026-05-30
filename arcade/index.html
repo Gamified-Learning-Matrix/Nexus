@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arcade OS — Gulf Nexus</title>
+  <style>
+    /* ── Palette ─────────────────────────────────────────────────────────── */
+    :root {
+      --bg:           #050510;
+      --bg-panel:     #0a0a1e;
+      --bg-card:      #10102a;
+      --bg-term:      #020208;
+      --cyan:         #00cfff;
+      --cyan-dim:     #0090b8;
+      --green:        #00e676;
+      --green-dim:    #00a854;
+      --gold:         #f5c518;
+      --gold-dim:     #b89010;
+      --purple:       #7851a9;
+      --purple-light: #b48fe0;
+      --red:          #ff4444;
+      --orange:       #ff9800;
+      --text:         #e8e0ff;
+      --text-muted:   #6a7a9a;
+      --border:       rgba(0,207,255,0.18);
+      --border-hot:   rgba(0,207,255,0.55);
+      --glow-cyan:    0 0 10px rgba(0,207,255,0.5);
+      --glow-gold:    0 0 10px rgba(245,197,24,0.5);
+      --glow-green:   0 0 10px rgba(0,230,118,0.5);
+      --pixel: 'Courier New', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    a { color: var(--cyan); text-decoration: none; }
+    a:hover { color: var(--purple-light); }
+
+    /* ── Scanlines ───────────────────────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,207,255,0.018) 2px, rgba(0,207,255,0.018) 4px);
+      pointer-events: none; z-index: 200;
+    }
+
+    /* ── Nav ─────────────────────────────────────────────────────────────── */
+    nav {
+      background: var(--bg-panel);
+      border-bottom: 2px solid var(--cyan);
+      box-shadow: var(--glow-cyan);
+      padding: 0.65rem 1.25rem;
+      display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+      position: relative; z-index: 10;
+    }
+    .nav-brand { font-family: var(--pixel); font-size: 0.9rem; font-weight: 700; letter-spacing: 0.12em; color: var(--cyan); text-shadow: var(--glow-cyan); }
+    .nav-links { display: flex; gap: 0.85rem; margin-left: auto; flex-wrap: wrap; }
+    .nav-links a { font-size: 0.78rem; letter-spacing: 0.08em; color: var(--text-muted); transition: color 0.2s; }
+    .nav-links a:hover { color: var(--cyan); }
+
+    /* ── Main layout ─────────────────────────────────────────────────────── */
+    .arcade-layout {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 0;
+      min-height: calc(100vh - 45px - 36px);
+    }
+
+    @media (max-width: 900px) {
+      .arcade-layout { grid-template-columns: 1fr; }
+      .hud-sidebar { order: -1; border-left: none; border-bottom: 2px solid var(--border); }
+    }
+
+    /* ── Main content area ───────────────────────────────────────────────── */
+    .main-area { padding: 1.25rem; display: flex; flex-direction: column; gap: 1.25rem; }
+
+    /* ── Section header ──────────────────────────────────────────────────── */
+    .sec-hdr {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-family: var(--pixel); font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--cyan); text-shadow: var(--glow-cyan);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem; margin-bottom: 0.75rem;
+    }
+    .sec-hdr.gold   { color: var(--gold); text-shadow: var(--glow-gold); border-color: rgba(245,197,24,0.25); }
+    .sec-hdr.green  { color: var(--green); text-shadow: var(--glow-green); border-color: rgba(0,230,118,0.25); }
+
+    /* ── Panel card ──────────────────────────────────────────────────────── */
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.1rem;
+    }
+    .panel:hover { border-color: var(--border-hot); box-shadow: var(--glow-cyan); }
+
+    /* ── Overworld Map ───────────────────────────────────────────────────── */
+    .overworld {
+      background: var(--bg-panel);
+      border: 2px solid var(--cyan);
+      border-radius: 10px;
+      padding: 0;
+      overflow: hidden;
+      position: relative;
+      min-height: 260px;
+    }
+    .map-title {
+      background: var(--cyan);
+      color: var(--bg);
+      font-family: var(--pixel);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+    }
+    .map-canvas {
+      position: relative;
+      min-height: 230px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0;
+      padding: 1rem;
+    }
+    .map-zone {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 0.35rem; padding: 0.75rem 0.5rem; cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .map-zone:hover { transform: scale(1.08); }
+    .map-zone-icon { font-size: 2rem; line-height: 1; }
+    .map-zone-label {
+      font-family: var(--pixel); font-size: 0.62rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      text-align: center;
+    }
+    .map-zone-label.cyan   { color: var(--cyan); }
+    .map-zone-label.gold   { color: var(--gold); }
+    .map-zone-label.green  { color: var(--green); }
+    .map-zone-label.purple { color: var(--purple-light); }
+
+    /* Connector lines */
+    .map-connectors {
+      position: absolute; inset: 0; pointer-events: none;
+    }
+
+    /* ── Game Cartridges ─────────────────────────────────────────────────── */
+    .cartridge-row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .cartridge {
+      background: var(--bg-panel);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      min-width: 120px; flex: 1;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+      text-align: center;
+    }
+    .cartridge:hover {
+      border-color: var(--cyan);
+      box-shadow: var(--glow-cyan);
+      transform: translateY(-3px);
+    }
+    .cartridge-icon { font-size: 1.8rem; margin-bottom: 0.3rem; line-height: 1; }
+    .cartridge-name {
+      font-family: var(--pixel); font-size: 0.65rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--cyan);
+    }
+    .cartridge-status { font-size: 0.68rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+    /* ── Mystery Meter ───────────────────────────────────────────────────── */
+    .mystery-meter-wrap {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.9rem 1rem;
+    }
+    .meter-label-row {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 0.72rem; font-family: var(--pixel); letter-spacing: 0.1em;
+      text-transform: uppercase; margin-bottom: 6px;
+    }
+    .meter-label-row span:first-child { color: var(--gold); text-shadow: var(--glow-gold); }
+    .meter-label-row span:last-child  { color: var(--text-muted); }
+    .meter-track {
+      background: rgba(255,255,255,0.05);
+      border-radius: 20px; height: 12px; overflow: hidden;
+    }
+    .meter-fill {
+      height: 100%; border-radius: 20px;
+      background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+      box-shadow: var(--glow-gold);
+      transition: width 1.2s ease;
+    }
+    .meter-hint {
+      font-size: 0.72rem; color: var(--text-muted);
+      font-style: italic; margin-top: 6px; line-height: 1.4;
+    }
+
+    /* ── Badges ──────────────────────────────────────────────────────────── */
+    .badge-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .badge-item {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 0.35rem; padding: 0.85rem;
+      background: var(--bg-panel); border: 1px solid var(--border);
+      border-radius: 10px; flex: 1; min-width: 100px;
+      cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s;
+      text-align: center;
+    }
+    .badge-item:hover { border-color: var(--gold); box-shadow: var(--glow-gold); }
+    .badge-emoji { font-size: 2rem; line-height: 1; }
+    .badge-name {
+      font-family: var(--pixel); font-size: 0.62rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .badge-name.gold   { color: var(--gold); }
+    .badge-name.cyan   { color: var(--cyan); }
+    .badge-name.purple { color: var(--purple-light); }
+    .badge-desc { font-size: 0.68rem; color: var(--text-muted); line-height: 1.3; }
+
+    /* ── Arcade Terminal ─────────────────────────────────────────────────── */
+    .terminal-panel {
+      background: var(--bg-term);
+      border: 2px solid var(--green);
+      border-radius: 8px;
+      padding: 0;
+      overflow: hidden;
+    }
+    .terminal-titlebar {
+      background: var(--green);
+      color: var(--bg-term);
+      font-family: var(--pixel);
+      font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      padding: 4px 10px;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .terminal-output {
+      font-family: var(--pixel);
+      font-size: 11px; color: var(--green);
+      padding: 0.75rem 1rem;
+      min-height: 110px; max-height: 160px;
+      overflow-y: auto;
+      line-height: 1.7;
+    }
+    .terminal-input-row {
+      display: flex; align-items: center; gap: 0;
+      border-top: 1px solid rgba(0,230,118,0.2);
+      padding: 0.4rem 0.75rem;
+    }
+    .term-prompt { font-family: var(--pixel); font-size: 11px; color: var(--green); white-space: nowrap; }
+    .term-input {
+      flex: 1;
+      background: transparent;
+      border: none; outline: none;
+      font-family: var(--pixel); font-size: 11px; color: var(--green);
+      caret-color: var(--green);
+      padding: 0 0.3rem;
+    }
+
+    /* ── HUD Sidebar ─────────────────────────────────────────────────────── */
+    .hud-sidebar {
+      background: var(--bg-panel);
+      border-left: 2px solid var(--border);
+      padding: 1.1rem;
+      display: flex; flex-direction: column; gap: 1rem;
+    }
+    .hud-block-title {
+      font-family: var(--pixel); font-size: 0.62rem; font-weight: 700;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--green); text-shadow: var(--glow-green);
+      border-bottom: 1px solid rgba(0,230,118,0.2);
+      padding-bottom: 0.35rem; margin-bottom: 0.6rem;
+    }
+    .hud-block-title.gold  { color: var(--gold); text-shadow: var(--glow-gold); border-color: rgba(245,197,24,0.2); }
+    .hud-block-title.cyan  { color: var(--cyan); text-shadow: var(--glow-cyan); border-color: rgba(0,207,255,0.2); }
+
+    /* Stat table */
+    .stat-table { width: 100%; }
+    .stat-row { display: flex; justify-content: space-between; align-items: baseline; padding: 2px 0; }
+    .stat-key { font-family: var(--pixel); font-size: 0.68rem; letter-spacing: 0.1em; color: var(--text-muted); text-transform: uppercase; }
+    .stat-val { font-family: var(--pixel); font-size: 0.82rem; font-weight: 700; }
+    .stat-val.cyan   { color: var(--cyan); text-shadow: var(--glow-cyan); }
+    .stat-val.gold   { color: var(--gold); text-shadow: var(--glow-gold); }
+    .stat-val.green  { color: var(--green); text-shadow: var(--glow-green); }
+    .stat-val.white  { color: var(--text); }
+
+    /* Download rows */
+    .dl-row { margin-bottom: 8px; }
+    .dl-row-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
+    .dl-name { font-family: var(--pixel); font-size: 0.65rem; color: var(--text); letter-spacing: 0.06em; }
+    .dl-pct  { font-family: var(--pixel); font-size: 0.65rem; color: var(--text-muted); }
+    .dl-track { background: rgba(255,255,255,0.05); border-radius: 20px; height: 5px; overflow: hidden; }
+    .dl-fill { height: 100%; border-radius: 20px; }
+    .dl-fill.cyan  { background: var(--cyan); box-shadow: var(--glow-cyan); }
+    .dl-fill.green { background: var(--green); box-shadow: var(--glow-green); }
+    .dl-fill.gold  { background: var(--gold); box-shadow: var(--glow-gold); }
+    .dl-fill.red   { background: var(--red); }
+
+    /* Data table */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 0.68rem; }
+    .data-table th { font-family: var(--pixel); font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border); padding: 3px 4px; text-align: left; }
+    .data-table td { padding: 4px; color: var(--text); border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .data-table td:first-child { color: var(--text-muted); font-style: italic; font-size: 0.62rem; }
+    .data-table td:last-child  { color: var(--cyan); font-weight: 700; font-family: var(--pixel); }
+
+    /* ── Footer ──────────────────────────────────────────────────────────── */
+    footer {
+      background: var(--bg-panel);
+      border-top: 1px solid var(--border);
+      text-align: center;
+      padding: 0.6rem 1rem;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-family: var(--pixel);
+      letter-spacing: 0.1em;
+    }
+    footer span { color: var(--cyan); }
+
+    /* ── Scrollbar ───────────────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--cyan-dim); border-radius: 4px; }
+
+    /* ── Blinking cursor ─────────────────────────────────────────────────── */
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    .blink { animation: blink 1s step-end infinite; }
+
+    /* ── Pulse ───────────────────────────────────────────────────────────── */
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    .pulse { animation: pulse 2s ease-in-out infinite; }
+  </style>
+</head>
+<body>
+
+<!-- ══ Nav ══════════════════════════════════════════════════════════════════ -->
+<nav>
+  <div class="nav-brand">🎮 ARCADE OS · GULF NEXUS</div>
+  <div class="nav-links">
+    <a href="../index.html">⭐ Star Road</a>
+    <a href="../ministry/index.html">⛪ Ministry</a>
+    <a href="../listings/tampa.html">🏠 Listings</a>
+    <a href="game-match3/index.html">🧩 Match-3</a>
+    <a href="game-seven-stars/index.html">🌟 Seven Stars</a>
+    <a href="modules/terminal.html">💻 Terminal</a>
+  </div>
+</nav>
+
+<!-- ══ Arcade Layout ═══════════════════════════════════════════════════════ -->
+<div class="arcade-layout">
+
+  <!-- ── Main Area ──────────────────────────────────────────────────────── -->
+  <div class="main-area">
+
+    <!-- Interactive Overworld Map -->
+    <div>
+      <div class="sec-hdr">🗺️ Interactive Overworld Map</div>
+      <div class="overworld">
+        <div class="map-title">GAMIFIED SYSTEM MECHANICS</div>
+        <div class="map-canvas">
+          <div class="map-zone" onclick="zoneClick('mission')">
+            <div class="map-zone-icon">📋</div>
+            <div class="map-zone-label cyan">Mission<br/>Boards</div>
+          </div>
+          <div class="map-zone" onclick="zoneClick('npc')">
+            <div class="map-zone-icon">🏘️</div>
+            <div class="map-zone-label gold">NPC<br/>Villages</div>
+          </div>
+          <div class="map-zone" onclick="zoneClick('nodes')">
+            <div class="map-zone-icon">🔮</div>
+            <div class="map-zone-label green">Game<br/>Nodes</div>
+          </div>
+          <div class="map-zone" onclick="zoneClick('forge')">
+            <div class="map-zone-icon">⚔️</div>
+            <div class="map-zone-label purple">Battle<br/>Forge</div>
+          </div>
+          <div class="map-zone" onclick="zoneClick('starroad')">
+            <div class="map-zone-icon">🌈</div>
+            <div class="map-zone-label gold">Star<br/>Road</div>
+          </div>
+          <div class="map-zone" onclick="zoneClick('sanctuary')">
+            <div class="map-zone-icon">⛪</div>
+            <div class="map-zone-label cyan">Ministry<br/>Sanctuary</div>
+          </div>
+        </div>
+      </div>
+      <div id="zoneMsg" style="font-size:0.78rem;color:var(--cyan);margin-top:0.5rem;min-height:1.2em;font-style:italic;"></div>
+    </div>
+
+    <!-- Modular Game Cartridges -->
+    <div>
+      <div class="sec-hdr gold">🎮 Modular Game Cartridges</div>
+      <div class="cartridge-row">
+        <div class="cartridge" onclick="location.href='modules/terminal.html'">
+          <div class="cartridge-icon">💻</div>
+          <div class="cartridge-name">Terminal</div>
+          <div class="cartridge-status">Plug in ▶</div>
+        </div>
+        <div class="cartridge" onclick="location.href='game-match3/index.html'">
+          <div class="cartridge-icon">🧩</div>
+          <div class="cartridge-name">Match-3</div>
+          <div class="cartridge-status">Quests</div>
+        </div>
+        <div class="cartridge" onclick="location.href='game-seven-stars/index.html'">
+          <div class="cartridge-icon">🌟</div>
+          <div class="cartridge-name">Seven Stars</div>
+          <div class="cartridge-status">Puzzles</div>
+        </div>
+        <div class="cartridge" onclick="location.href='modules/npc-village.html'">
+          <div class="cartridge-icon">🏘️</div>
+          <div class="cartridge-name">NPC Village</div>
+          <div class="cartridge-status">Social</div>
+        </div>
+        <div class="cartridge" onclick="location.href='modules/stats.html'">
+          <div class="cartridge-icon">📊</div>
+          <div class="cartridge-name">Stats Hub</div>
+          <div class="cartridge-status">Analytics</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mystery Meter -->
+    <div>
+      <div class="sec-hdr gold">🌟 The Mystery Meter</div>
+      <div class="mystery-meter-wrap">
+        <div class="meter-label-row">
+          <span>Mystery Progress</span>
+          <span id="mysteryPct">0%</span>
+        </div>
+        <div class="meter-track">
+          <div class="meter-fill" id="mysteryFill" style="width:0%"></div>
+        </div>
+        <p class="meter-hint">
+          Reaching 100% progress triggers quizzes and unlocks new map nodes or features.
+          Keep collecting Star Pieces!
+        </p>
+      </div>
+    </div>
+
+    <!-- Badge & Star Rewards -->
+    <div>
+      <div class="sec-hdr green">🏆 Badge &amp; Star Rewards</div>
+      <div class="badge-row">
+        <div class="badge-item">
+          <div class="badge-emoji">⚡</div>
+          <div class="badge-name gold">Power User</div>
+          <div class="badge-desc">Complete 10 missions</div>
+        </div>
+        <div class="badge-item">
+          <div class="badge-emoji">🐛</div>
+          <div class="badge-name cyan">Bug Hunter</div>
+          <div class="badge-desc">Report a verified bug</div>
+        </div>
+        <div class="badge-item">
+          <div class="badge-emoji">🏅</div>
+          <div class="badge-name purple">Contributor</div>
+          <div class="badge-desc">Merge a pull request</div>
+        </div>
+        <div class="badge-item">
+          <div class="badge-emoji">⭐</div>
+          <div class="badge-name gold">Star Awaken</div>
+          <div class="badge-desc">Unlock all 7 Stars</div>
+        </div>
+      </div>
+      <p style="font-size:0.72rem;color:var(--text-muted);margin-top:0.75rem;font-style:italic;">
+        Certificates and achievements download as badges following "Star Awakening" cutscenes.
+      </p>
+    </div>
+
+    <!-- Arcade Terminal -->
+    <div>
+      <div class="sec-hdr green">💻 Arcade Terminal</div>
+      <div class="terminal-panel">
+        <div class="terminal-titlebar">● THE ARCADE TERMINAL &nbsp;— replaces the standard shell with a retro RPG interface</div>
+        <div class="terminal-output" id="termOut">
+&gt; SYSTEM BOOT... [OK]
+&gt; GULF NEXUS ARCADE OS v1.0.0
+&gt; STAR ROAD TELEMETRY... CONNECTED
+&gt; READY. ENTER COMMAND...<span class="blink">█</span>
+        </div>
+        <div class="terminal-input-row">
+          <span class="term-prompt">GNX&gt;&nbsp;</span>
+          <input type="text" class="term-input" id="termInput" placeholder="help" autocomplete="off" spellcheck="false" />
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.main-area -->
+
+  <!-- ── HUD Sidebar ────────────────────────────────────────────────────── -->
+  <div class="hud-sidebar">
+
+    <!-- Arcade Stats -->
+    <div>
+      <div class="hud-block-title">Arcade Stats</div>
+      <div class="stat-table">
+        <div class="stat-row">
+          <span class="stat-key">Score</span>
+          <span class="stat-val cyan" id="hudScore">0</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-key">Level</span>
+          <span class="stat-val gold" id="hudLevel">1</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-key">Health</span>
+          <span class="stat-val green" id="hudHealth">100%</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-key">EXP</span>
+          <span class="stat-val white" id="hudExp">0 / 1000</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Downloads -->
+    <div>
+      <div class="hud-block-title gold">Downloads</div>
+      <div class="dl-row">
+        <div class="dl-row-label">
+          <span class="dl-name">⭐ Star Awakening</span>
+          <span class="dl-pct" id="dlStarPct">0%</span>
+        </div>
+        <div class="dl-track"><div class="dl-fill gold" id="dlStarFill" style="width:0%"></div></div>
+      </div>
+      <div class="dl-row">
+        <div class="dl-row-label">
+          <span class="dl-name">🎮 Game Modules</span>
+          <span class="dl-pct">100%</span>
+        </div>
+        <div class="dl-track"><div class="dl-fill green" style="width:100%"></div></div>
+      </div>
+      <div class="dl-row">
+        <div class="dl-row-label">
+          <span class="dl-name">🏅 Badge Rewards</span>
+          <span class="dl-pct" id="dlBadgePct">0%</span>
+        </div>
+        <div class="dl-track"><div class="dl-fill cyan" id="dlBadgeFill" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- Data Table -->
+    <div>
+      <div class="hud-block-title cyan">Data Table</div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Old Component</th>
+            <th>Arcade OS Identity</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Telemetry</td><td>Arcade Stats</td></tr>
+          <tr><td>Matrix</td><td>Mystery Engine</td></tr>
+          <tr><td>Sector</td><td>Starfield</td></tr>
+          <tr><td>Auth</td><td>Sovereign Gate</td></tr>
+          <tr><td>Listings</td><td>Star Pieces</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Quick Nav -->
+    <div>
+      <div class="hud-block-title">Navigation</div>
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        <a href="../index.html" style="font-size:0.78rem;color:var(--text-muted);">🌈 Star Road Portal</a>
+        <a href="../ministry/index.html" style="font-size:0.78rem;color:var(--text-muted);">⛪ Ministry Portal</a>
+        <a href="../listings/tampa.html" style="font-size:0.78rem;color:var(--text-muted);">🏠 Tampa Listings</a>
+        <a href="../listings/largo.html" style="font-size:0.78rem;color:var(--text-muted);">🏠 Largo Listings</a>
+        <a href="modules/terminal.html" style="font-size:0.78rem;color:var(--text-muted);">💻 Terminal</a>
+        <a href="modules/stats.html" style="font-size:0.78rem;color:var(--text-muted);">📊 Stats Module</a>
+        <a href="modules/npc-village.html" style="font-size:0.78rem;color:var(--text-muted);">🏘️ NPC Village</a>
+      </div>
+    </div>
+
+  </div><!-- /.hud-sidebar -->
+</div><!-- /.arcade-layout -->
+
+<footer>
+  <span>GULF NEXUS</span> · ARCADE OS v1.0.0 · STAR ROAD TELEMETRY ACTIVE
+</footer>
+
+<script>
+/* ── Terminal commands ───────────────────────────────────────────────────── */
+const COMMANDS = {
+  help: () => [
+    "Available commands:",
+    "  help       — show this list",
+    "  status     — system status",
+    "  score      — view arcade score",
+    "  level      — view current level",
+    "  stars      — list star pieces",
+    "  navigate   — open navigation hub",
+    "  clear      — clear terminal",
+  ].join("\n"),
+  status: () => `SYSTEM STATUS: ONLINE\nSTAR ROAD: CONNECTED\nFIREBASE: CONFIGURED\nHUD: ACTIVE`,
+  score:  () => `CURRENT SCORE: ${arcadeState.score}`,
+  level:  () => `CURRENT LEVEL: ${arcadeState.level}`,
+  stars:  () => "⭐ Star Pieces: 0/7 collected\n🌈 Star Road: Active\n🌟 Next Star: First Claim",
+  navigate: () => { setTimeout(() => location.href = "../index.html", 500); return "Opening Star Road…"; },
+  clear:  () => { document.getElementById("termOut").innerHTML = "<span class='blink'>█</span>"; return null; },
+};
+
+const termOut   = document.getElementById("termOut");
+const termInput = document.getElementById("termInput");
+
+termInput.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter") return;
+  const cmd = termInput.value.trim().toLowerCase();
+  termInput.value = "";
+  if (!cmd) return;
+  const fn = COMMANDS[cmd];
+  const result = fn ? fn() : `Unknown command: "${cmd}". Type "help" for options.`;
+  if (result !== null) appendTerminal(`GNX> ${cmd}\n${result}`);
+});
+
+function appendTerminal(text) {
+  const pre = document.createElement("div");
+  pre.textContent = text;
+  termOut.appendChild(pre);
+  termOut.appendChild(Object.assign(document.createElement("span"), { className: "blink", textContent: "█" }));
+  termOut.scrollTop = termOut.scrollHeight;
+}
+
+/* ── Overworld zones ─────────────────────────────────────────────────────── */
+const ZONE_MSGS = {
+  mission:   "📋 Mission Boards — Accept quests from the guild and earn Star Pieces.",
+  npc:       "🏘️ NPC Villages — Talk to villagers for hints, lore, and side quests.",
+  nodes:     "🔮 Game Nodes — Unlock new game modes as you collect Stars.",
+  forge:     "⚔️ Battle Forge — Challenge other learners in knowledge duels.",
+  starroad:  "🌈 Star Road — The central hub connecting all seven Star Pieces.",
+  sanctuary: "⛪ Ministry Sanctuary — Rest, restore health, and access housing listings.",
+};
+function zoneClick(zone) {
+  document.getElementById("zoneMsg").textContent = ZONE_MSGS[zone] || "";
+}
+
+/* ── Arcade state ────────────────────────────────────────────────────────── */
+const arcadeState = { score: 0, level: 1, health: 100, exp: 0 };
+
+/* Load from localStorage if available */
+try {
+  const saved = JSON.parse(localStorage.getItem("gnx_arcade") || "null");
+  if (saved) Object.assign(arcadeState, saved);
+} catch { /* ignore */ }
+
+function refreshHUD() {
+  document.getElementById("hudScore").textContent  = arcadeState.score.toLocaleString();
+  document.getElementById("hudLevel").textContent  = arcadeState.level;
+  document.getElementById("hudHealth").textContent = arcadeState.health + "%";
+  document.getElementById("hudExp").textContent    = `${arcadeState.exp % 1000} / 1000`;
+
+  const mysteryPct = Math.min(100, Math.round((arcadeState.exp / 5000) * 100));
+  document.getElementById("mysteryPct").textContent  = mysteryPct + "%";
+  document.getElementById("mysteryFill").style.width = mysteryPct + "%";
+
+  const starPct = Math.min(100, Math.round((arcadeState.level / 7) * 100));
+  document.getElementById("dlStarPct").textContent  = starPct + "%";
+  document.getElementById("dlStarFill").style.width = starPct + "%";
+
+  const badgePct = Math.min(100, Math.round((arcadeState.score / 50000) * 100));
+  document.getElementById("dlBadgePct").textContent  = badgePct + "%";
+  document.getElementById("dlBadgeFill").style.width = badgePct + "%";
+}
+
+refreshHUD();
+
+/* Animate on load */
+setTimeout(() => {
+  arcadeState.exp = parseInt(localStorage.getItem("gnx_exp") || "0");
+  arcadeState.level = Math.floor(arcadeState.exp / 1000) + 1;
+  arcadeState.score = arcadeState.exp * 10;
+  refreshHUD();
+}, 300);
+</script>
+
+</body>
+</html>

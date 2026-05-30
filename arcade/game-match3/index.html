@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Match-3 Quests — Arcade OS</title>
+  <style>
+    :root {
+      --bg: #050510; --bg-panel: #0a0a1e; --bg-card: #10102a;
+      --cyan: #00cfff; --gold: #f5c518; --green: #00e676;
+      --purple: #7851a9; --purple-light: #b48fe0;
+      --text: #e8e0ff; --text-muted: #6a7a9a;
+      --border: rgba(0,207,255,0.18);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    a { color: var(--cyan); text-decoration: none; }
+    nav { background: var(--bg-panel); border-bottom: 1px solid var(--border); padding: 0.65rem 1.25rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    .nav-brand { font-size: 0.9rem; font-weight: 800; color: var(--cyan); letter-spacing: 0.1em; }
+    .nav-links { display: flex; gap: 0.85rem; margin-left: auto; }
+    .nav-links a { font-size: 0.8rem; color: var(--text-muted); }
+    .hero { text-align: center; padding: 3rem 1.5rem; background: linear-gradient(135deg, var(--bg-panel), #1a0e35); border-bottom: 2px solid var(--purple); }
+    .hero h1 { font-size: clamp(1.6rem,4vw,2.4rem); font-weight: 800; background: linear-gradient(90deg,var(--purple-light),var(--cyan)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:0.5rem; }
+    .hero p  { color: var(--text-muted); max-width: 500px; margin: 0 auto 1.5rem; font-size: 0.95rem; }
+    .btn { display:inline-block; padding:0.55rem 1.4rem; border-radius:7px; font-weight:700; font-size:0.88rem; cursor:pointer; border:1px solid var(--cyan); background:rgba(0,207,255,0.1); color:var(--cyan); transition:filter 0.2s; }
+    .btn:hover { filter:brightness(1.2); text-decoration:none; }
+    .container { max-width:900px; margin:2rem auto; padding:0 1.5rem; }
+    .board { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; max-width:420px; margin:0 auto 1.5rem; }
+    .cell { aspect-ratio:1; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:1.6rem; cursor:pointer; border:2px solid transparent; transition:border-color 0.15s, transform 0.15s; user-select:none; }
+    .cell:hover { border-color:var(--cyan); transform:scale(1.08); }
+    .cell.selected { border-color:var(--gold); box-shadow:0 0 8px rgba(245,197,24,0.5); transform:scale(1.1); }
+    .score-row { display:flex; justify-content:center; gap:2rem; margin-bottom:1rem; }
+    .score-box { text-align:center; }
+    .score-val { font-size:1.5rem; font-weight:800; color:var(--gold); }
+    .score-lbl { font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.1em; }
+    footer { background:var(--bg-panel); border-top:1px solid var(--border); text-align:center; padding:1rem; font-size:0.78rem; color:var(--text-muted); margin-top:3rem; }
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-brand">🧩 Match-3 Quests</div>
+  <div class="nav-links">
+    <a href="../index.html">🎮 Arcade OS</a>
+    <a href="../../index.html">⭐ Star Road</a>
+  </div>
+</nav>
+<div class="hero">
+  <h1>🧩 Match-3 Quests</h1>
+  <p>Match symbols to earn Star Pieces and unlock gamified learning modules.</p>
+  <button class="btn" id="btnNew">▶ New Game</button>
+</div>
+<div class="container">
+  <div class="score-row">
+    <div class="score-box"><div class="score-val" id="score">0</div><div class="score-lbl">Score</div></div>
+    <div class="score-box"><div class="score-val" id="moves" style="color:var(--cyan);">20</div><div class="score-lbl">Moves</div></div>
+    <div class="score-box"><div class="score-val" id="stars" style="color:var(--purple-light);">0</div><div class="score-lbl">Stars</div></div>
+  </div>
+  <div class="board" id="board"></div>
+  <p style="text-align:center;color:var(--text-muted);font-size:0.8rem;">Click two adjacent tiles to swap. Match 3+ to score!</p>
+</div>
+<footer>Arcade OS · Match-3 Quests · Gulf Nexus</footer>
+<script>
+  const SYMBOLS = ["⭐","🌈","🎮","⚡","🌟","🏆","💎"];
+  const COLS=7, ROWS=7;
+  let board=[], selected=null, score=0, moves=20, stars=0;
+
+  function makeBoard(){
+    board=[];
+    for(let r=0;r<ROWS;r++){board.push([]);for(let c=0;c<COLS;c++)board[r].push(SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]);}
+    render();
+  }
+
+  function render(){
+    const el=document.getElementById("board");
+    el.innerHTML="";
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      const cell=document.createElement("div");
+      cell.className="cell";
+      cell.style.background=`hsl(${(r*37+c*53)%360},30%,14%)`;
+      cell.textContent=board[r][c];
+      cell.dataset.r=r; cell.dataset.c=c;
+      if(selected&&selected[0]===r&&selected[1]===c)cell.classList.add("selected");
+      cell.addEventListener("click",()=>cellClick(r,c));
+      el.appendChild(cell);
+    }
+    document.getElementById("score").textContent=score;
+    document.getElementById("moves").textContent=moves;
+    document.getElementById("stars").textContent=stars;
+  }
+
+  function cellClick(r,c){
+    if(!selected){selected=[r,c];render();return;}
+    const [sr,sc]=selected;
+    if(Math.abs(r-sr)+Math.abs(c-sc)===1){
+      [board[r][c],board[sr][sc]]=[board[sr][sc],board[r][c]];
+      const matched=checkMatches();
+      if(!matched){[board[r][c],board[sr][sc]]=[board[sr][sc],board[r][c]];}
+      else{moves--;if(moves<=0)setTimeout(()=>alert(`Game over! Score: ${score}`),100);}
+    }
+    selected=null;render();
+  }
+
+  function checkMatches(){
+    let found=false;
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS-2;c++){
+      if(board[r][c]&&board[r][c]===board[r][c+1]&&board[r][c]===board[r][c+2]){
+        score+=30;stars++;
+        board[r][c]=board[r][c+1]=board[r][c+2]=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];found=true;
+      }
+    }
+    for(let c=0;c<COLS;c++)for(let r=0;r<ROWS-2;r++){
+      if(board[r][c]&&board[r][c]===board[r+1][c]&&board[r][c]===board[r+2][c]){
+        score+=30;stars++;
+        board[r][c]=board[r+1][c]=board[r+2][c]=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];found=true;
+      }
+    }
+    return found;
+  }
+
+  document.getElementById("btnNew").addEventListener("click",()=>{score=0;moves=20;stars=0;makeBoard();});
+  makeBoard();
+</script>
+</body>
+</html>

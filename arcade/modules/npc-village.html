@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NPC Village — Arcade OS</title>
+  <style>
+    :root {
+      --bg:#050510; --bg-panel:#0a0a1e; --bg-card:#10102a;
+      --cyan:#00cfff; --gold:#f5c518; --green:#00e676;
+      --purple:#7851a9; --purple-light:#b48fe0;
+      --text:#e8e0ff; --text-muted:#6a7a9a; --border:rgba(0,207,255,0.18);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+    a{color:var(--cyan);text-decoration:none;}
+    nav{background:var(--bg-panel);border-bottom:1px solid var(--border);padding:0.65rem 1.25rem;display:flex;align-items:center;gap:1rem;}
+    .nav-brand{font-weight:800;font-size:0.9rem;color:var(--green);letter-spacing:0.1em;}
+    .nav-links{display:flex;gap:0.85rem;margin-left:auto;}
+    .nav-links a{font-size:0.8rem;color:var(--text-muted);}
+    .hero{text-align:center;padding:2rem 1.5rem;background:linear-gradient(135deg,var(--bg-panel),#061a06);border-bottom:2px solid var(--green);}
+    .hero h1{font-size:clamp(1.4rem,3.5vw,2rem);font-weight:800;color:var(--green);margin-bottom:0.3rem;}
+    .hero p{color:var(--text-muted);font-size:0.88rem;max-width:500px;margin:0 auto;}
+    .container{max-width:900px;margin:2rem auto;padding:0 1.5rem;}
+    .village-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-bottom:1.5rem;}
+    .npc-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;cursor:pointer;transition:border-color 0.2s,box-shadow 0.2s,transform 0.2s;}
+    .npc-card:hover{border-color:var(--green);box-shadow:0 0 14px rgba(0,230,118,0.25);transform:translateY(-2px);}
+    .npc-card.active{border-color:var(--gold);}
+    .npc-avatar{font-size:2.5rem;margin-bottom:0.5rem;line-height:1;}
+    .npc-name{font-weight:800;font-size:0.95rem;color:var(--green);margin-bottom:0.15rem;}
+    .npc-role{font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.5rem;}
+    .npc-quote{font-size:0.82rem;color:var(--text);font-style:italic;line-height:1.45;border-left:2px solid var(--green);padding-left:0.5rem;}
+    .dialog-box{background:var(--bg-panel);border:2px solid var(--gold);border-radius:10px;padding:1rem 1.25rem;margin-top:1rem;display:none;}
+    .dialog-box.show{display:block;}
+    .dialog-npc{font-weight:800;color:var(--gold);margin-bottom:0.35rem;}
+    .dialog-text{font-size:0.88rem;line-height:1.55;color:var(--text);}
+    .dialog-actions{margin-top:0.75rem;display:flex;gap:0.5rem;flex-wrap:wrap;}
+    .btn{display:inline-block;padding:0.4rem 1rem;border-radius:6px;font-weight:700;font-size:0.8rem;cursor:pointer;border:1px solid var(--cyan);background:rgba(0,207,255,0.1);color:var(--cyan);transition:filter 0.2s;}
+    .btn:hover{filter:brightness(1.2);}
+    footer{background:var(--bg-panel);border-top:1px solid var(--border);text-align:center;padding:1rem;font-size:0.78rem;color:var(--text-muted);margin-top:3rem;}
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-brand">🏘️ NPC Village</div>
+  <div class="nav-links">
+    <a href="../index.html">🎮 Arcade OS</a>
+    <a href="../../index.html">⭐ Star Road</a>
+  </div>
+</nav>
+<div class="hero">
+  <h1>🏘️ NPC Village</h1>
+  <p>Talk to the village inhabitants for hints, quests, and lore of the Gulf Nexus Kingdom.</p>
+</div>
+<div class="container">
+  <div class="village-grid" id="villageGrid"></div>
+  <div class="dialog-box" id="dialogBox">
+    <div class="dialog-npc" id="dialogNpc"></div>
+    <div class="dialog-text" id="dialogText"></div>
+    <div class="dialog-actions">
+      <button class="btn" onclick="closeDialog()">✕ Close</button>
+    </div>
+  </div>
+</div>
+<footer>Arcade OS · NPC Village · Gulf Nexus Kingdom</footer>
+<script>
+const NPCS=[
+  {avatar:"🧙",name:"Elder Geno",    role:"Star Road Sage",      quotes:["Seek the Seven Stars to restore harmony to the Kingdom.","Each Star Piece unlocks a new domain of the Gulf Nexus ecosystem.","The Mystery Meter holds many secrets — keep earning XP!"]},
+  {avatar:"⚔️",name:"Bowser Guard",  role:"Security Warden",     quotes:["None shall pass without proper credentials!","The Sovereign Matrix demands authentication.","Your passkey is your shield. Guard it well."]},
+  {avatar:"🌸",name:"Rosalina",      role:"Star Road Navigator",  quotes:["Follow the Star Road and you will never be lost.","The Ministry Sanctuary is always open to those in need.","Amazing Grace shines bright in Tampa and Largo."]},
+  {avatar:"🎵",name:"Herald Ezra",   role:"Voice of Jesus Choir", quotes:["Music is the language of the Kingdom.","Every upload resonates through the Nimbus telemetry layer.","Your testimony is a star piece in the making."]},
+  {avatar:"🏠",name:"Grace Keeper",  role:"Amazing Grace Host",   quotes:["Rooms are available in Tampa and Largo — all are welcome.","Faith-driven housing starts with a single inquiry.","The shelter ministry is a Star Piece in the Gulf Nexus."]},
+  {avatar:"👑",name:"Nicholai",      role:"OWNER · Sovereign",   quotes:["The Gulf Nexus Kingdom stands on seven pillars of grace.","Claim your stars and unlock your sovereign destiny.","The Command Center is always watching, always protecting."]},
+];
+
+function openDialog(npc){
+  const q=npc.quotes[Math.floor(Math.random()*npc.quotes.length)];
+  document.getElementById("dialogNpc").textContent=`${npc.avatar} ${npc.name} — ${npc.role}`;
+  document.getElementById("dialogText").textContent=`"${q}"`;
+  document.getElementById("dialogBox").classList.add("show");
+}
+function closeDialog(){document.getElementById("dialogBox").classList.remove("show");}
+
+const grid=document.getElementById("villageGrid");
+NPCS.forEach(npc=>{
+  const card=document.createElement("div");
+  card.className="npc-card";
+  card.innerHTML=`<div class="npc-avatar">${npc.avatar}</div><div class="npc-name">${npc.name}</div><div class="npc-role">${npc.role}</div><div class="npc-quote">"${npc.quotes[0]}"</div>`;
+  card.addEventListener("click",()=>openDialog(npc));
+  grid.appendChild(card);
+});
+</script>
+</body>
+</html>

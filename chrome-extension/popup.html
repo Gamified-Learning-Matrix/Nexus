@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gulf Nexus Command Center</title>
+  <style>
+    /* ── Sovereign Matrix Palette ─────────────────────────────────────────── */
+    :root {
+      --bg:          #0a0a0a;
+      --bg-panel:    #0f0f1a;
+      --bg-card:     #12121f;
+      --cyan:        #00f3ff;
+      --cyan-dim:    #00b4be;
+      --magenta:     #ff00ff;
+      --magenta-dim: #b800b8;
+      --gold:        #f5c518;
+      --gold-dim:    #b89010;
+      --text:        #e0e8f0;
+      --text-muted:  #6a7a8a;
+      --border:      rgba(0, 243, 255, 0.25);
+      --border-hot:  rgba(0, 243, 255, 0.7);
+      --glow-cyan:   0 0 8px rgba(0, 243, 255, 0.55);
+      --glow-mag:    0 0 8px rgba(255, 0, 255, 0.55);
+      --glow-gold:   0 0 8px rgba(245, 197, 24, 0.55);
+      --radius:      8px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 400px;
+      min-height: 520px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, monospace;
+      font-size: 13px;
+      overflow-x: hidden;
+    }
+
+    /* ── Scanline overlay ────────────────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 243, 255, 0.02) 2px,
+        rgba(0, 243, 255, 0.02) 4px
+      );
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    /* ── Header ──────────────────────────────────────────────────────────── */
+    .header {
+      background: linear-gradient(135deg, #0a0a1a 0%, #0f0f2a 100%);
+      border-bottom: 1px solid var(--cyan);
+      box-shadow: var(--glow-cyan);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-logo {
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .header-text {
+      flex: 1;
+    }
+
+    .header-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      text-shadow: var(--glow-cyan);
+    }
+
+    .header-sub {
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .header-status {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: var(--glow-cyan);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.35; }
+    }
+
+    .status-label {
+      font-size: 8px;
+      letter-spacing: 0.1em;
+      color: var(--cyan-dim);
+      text-transform: uppercase;
+    }
+
+    /* ── Nav tabs ────────────────────────────────────────────────────────── */
+    .nav {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-panel);
+    }
+
+    .nav-btn {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 9px 4px;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s, text-shadow 0.2s;
+    }
+
+    .nav-btn:hover { color: var(--text); }
+
+    .nav-btn[data-tab="career"].active {
+      color: var(--cyan);
+      border-color: var(--cyan);
+      text-shadow: var(--glow-cyan);
+    }
+    .nav-btn[data-tab="defense"].active {
+      color: var(--magenta);
+      border-color: var(--magenta);
+      text-shadow: var(--glow-mag);
+    }
+    .nav-btn[data-tab="sovereign"].active {
+      color: var(--gold);
+      border-color: var(--gold);
+      text-shadow: var(--glow-gold);
+    }
+
+    /* ── Tab panels ──────────────────────────────────────────────────────── */
+    .tab-panel {
+      display: none;
+      padding: 14px;
+      animation: fadeIn 0.2s ease;
+    }
+    .tab-panel.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Section headers ─────────────────────────────────────────────────── */
+    .section-hdr {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-hdr.cyan    { color: var(--cyan);    border-color: rgba(0,243,255,0.3); }
+    .section-hdr.magenta { color: var(--magenta); border-color: rgba(255,0,255,0.3); }
+    .section-hdr.gold    { color: var(--gold);    border-color: rgba(245,197,24,0.3); }
+
+    /* ── Cards ───────────────────────────────────────────────────────────── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      border-color: var(--border-hot);
+      box-shadow: var(--glow-cyan);
+    }
+
+    .card-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .card-icon { font-size: 16px; flex-shrink: 0; }
+
+    .card-info { flex: 1; }
+
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 1px;
+    }
+
+    .card-desc {
+      font-size: 10px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* ── Buttons ─────────────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border: none;
+      border-radius: 5px;
+      font-family: inherit;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      padding: 5px 10px;
+      transition: filter 0.2s, transform 0.15s;
+    }
+    .btn:hover  { filter: brightness(1.2); transform: translateY(-1px); }
+    .btn:active { transform: scale(0.97); }
+
+    .btn-cyan {
+      background: rgba(0, 243, 255, 0.12);
+      color: var(--cyan);
+      border: 1px solid var(--cyan);
+    }
+    .btn-magenta {
+      background: rgba(255, 0, 255, 0.12);
+      color: var(--magenta);
+      border: 1px solid var(--magenta);
+    }
+    .btn-gold {
+      background: rgba(245, 197, 24, 0.12);
+      color: var(--gold);
+      border: 1px solid var(--gold);
+    }
+    .btn-danger {
+      background: rgba(255, 60, 60, 0.12);
+      color: #ff5555;
+      border: 1px solid #ff5555;
+    }
+
+    /* ── Input / form ────────────────────────────────────────────────────── */
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+
+    .field label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--cyan);
+    }
+
+    .field input, .field select {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 11px;
+      padding: 5px 8px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .field input:focus, .field select:focus {
+      border-color: var(--cyan);
+      box-shadow: var(--glow-cyan);
+    }
+
+    .field.gold label   { color: var(--gold); }
+    .field.gold input:focus, .field.gold select:focus {
+      border-color: var(--gold);
+      box-shadow: var(--glow-gold);
+    }
+
+    .field.magenta label { color: var(--magenta); }
+    .field.magenta input:focus {
+      border-color: var(--magenta);
+      box-shadow: var(--glow-mag);
+    }
+
+    /* ── Badge / tag ─────────────────────────────────────────────────────── */
+    .badge {
+      display: inline-block;
+      border-radius: 20px;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+    }
+
+    .badge-cyan    { background: rgba(0,243,255,0.15); color: var(--cyan); border: 1px solid rgba(0,243,255,0.4); }
+    .badge-magenta { background: rgba(255,0,255,0.15); color: var(--magenta); border: 1px solid rgba(255,0,255,0.4); }
+    .badge-gold    { background: rgba(245,197,24,0.15); color: var(--gold); border: 1px solid rgba(245,197,24,0.4); }
+    .badge-green   { background: rgba(0,255,120,0.12); color: #00ff78; border: 1px solid rgba(0,255,120,0.35); }
+    .badge-red     { background: rgba(255,60,60,0.12); color: #ff5555; border: 1px solid rgba(255,60,60,0.35); }
+
+    /* ── Progress bar ────────────────────────────────────────────────────── */
+    .progress-wrap {
+      background: rgba(255,255,255,0.06);
+      border-radius: 20px;
+      height: 6px;
+      overflow: hidden;
+      margin: 4px 0 8px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      border-radius: 20px;
+      transition: width 0.6s ease;
+    }
+
+    .progress-bar.cyan    { background: linear-gradient(90deg, var(--cyan-dim), var(--cyan)); box-shadow: var(--glow-cyan); }
+    .progress-bar.magenta { background: linear-gradient(90deg, var(--magenta-dim), var(--magenta)); box-shadow: var(--glow-mag); }
+    .progress-bar.gold    { background: linear-gradient(90deg, var(--gold-dim), var(--gold)); box-shadow: var(--glow-gold); }
+
+    /* ── Stat row ────────────────────────────────────────────────────────── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .stat-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 7px 10px;
+      text-align: center;
+    }
+
+    .stat-val {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--cyan);
+      text-shadow: var(--glow-cyan);
+      line-height: 1;
+    }
+
+    .stat-val.gold    { color: var(--gold); text-shadow: var(--glow-gold); }
+    .stat-val.magenta { color: var(--magenta); text-shadow: var(--glow-mag); }
+
+    .stat-lbl {
+      font-size: 8px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* ── Alert / output ──────────────────────────────────────────────────── */
+    .alert {
+      border-radius: var(--radius);
+      padding: 7px 10px;
+      font-size: 10px;
+      margin-bottom: 8px;
+      border: 1px solid transparent;
+    }
+
+    .alert-cyan    { background: rgba(0,243,255,0.08); border-color: rgba(0,243,255,0.3); color: var(--cyan); }
+    .alert-gold    { background: rgba(245,197,24,0.08); border-color: rgba(245,197,24,0.3); color: var(--gold); }
+    .alert-magenta { background: rgba(255,0,255,0.08); border-color: rgba(255,0,255,0.3); color: var(--magenta); }
+    .alert-red     { background: rgba(255,60,60,0.08); border-color: rgba(255,60,60,0.3); color: #ff5555; }
+    .alert-green   { background: rgba(0,255,120,0.08); border-color: rgba(0,255,120,0.3); color: #00ff78; }
+
+    .output-box {
+      background: #050510;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 8px 10px;
+      font-family: 'Courier New', monospace;
+      font-size: 9px;
+      color: var(--cyan-dim);
+      min-height: 40px;
+      max-height: 90px;
+      overflow-y: auto;
+      line-height: 1.6;
+      margin-bottom: 8px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    /* ── Scrollbar ───────────────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--cyan-dim); border-radius: 4px; }
+
+    /* ── Spacer & util ───────────────────────────────────────────────────── */
+    .mt8  { margin-top: 8px; }
+    .mt12 { margin-top: 12px; }
+    .flex-row { display: flex; align-items: center; gap: 6px; }
+    .flex-row.wrap { flex-wrap: wrap; }
+    .flex-1 { flex: 1; }
+
+    /* ── Footer bar ──────────────────────────────────────────────────────── */
+    .footer-bar {
+      background: var(--bg-panel);
+      border-top: 1px solid var(--border);
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-bar span {
+      font-size: 8px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .footer-bar .user-chip {
+      font-size: 9px;
+      color: var(--gold);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══ Header ══════════════════════════════════════════════════════════════ -->
+  <div class="header">
+    <div class="header-logo">⚡</div>
+    <div class="header-text">
+      <div class="header-title">Gulf Nexus Command Center</div>
+      <div class="header-sub">Sovereign Matrix Administration</div>
+    </div>
+    <div class="header-status">
+      <div class="status-dot" id="onlineDot"></div>
+      <div class="status-label" id="onlineLabel">Online</div>
+    </div>
+  </div>
+
+  <!-- ══ Navigation ══════════════════════════════════════════════════════════ -->
+  <nav class="nav">
+    <button class="nav-btn active" data-tab="career">🧭 Career</button>
+    <button class="nav-btn"        data-tab="defense">🛡️ Defense</button>
+    <button class="nav-btn"        data-tab="sovereign">👑 Sovereign</button>
+  </nav>
+
+  <!-- ══════════════════════════════════════════════════════════════════════════
+       TAB 1 — CAREER
+       ══════════════════════════════════════════════════════════════════════ -->
+  <div class="tab-panel active" id="panel-career">
+
+    <!-- Arcade Stats HUD -->
+    <div class="section-hdr cyan">📊 Arcade Stats</div>
+    <div class="stat-grid">
+      <div class="stat-box">
+        <div class="stat-val" id="statScore">0</div>
+        <div class="stat-lbl">Score</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val gold" id="statLevel">1</div>
+        <div class="stat-lbl">Level</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="statHealth">100%</div>
+        <div class="stat-lbl">Health</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val magenta" id="statExp">0</div>
+        <div class="stat-lbl">EXP</div>
+      </div>
+    </div>
+
+    <!-- XP Progress -->
+    <div class="section-hdr cyan mt8">⭐ Star Piece Progress</div>
+    <div class="flex-row">
+      <span style="font-size:10px;color:var(--text-muted);">XP to next level</span>
+      <span style="font-size:10px;color:var(--cyan);font-weight:700;" id="xpLabel">0 / 1000</span>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-bar cyan" id="xpBar" style="width:0%"></div>
+    </div>
+
+    <!-- GitHub Repos -->
+    <div class="section-hdr cyan mt8">🐙 GitHub Repositories</div>
+    <div class="field">
+      <label>GitHub Username</label>
+      <input type="text" id="ghUsername" placeholder="e.g. NicholaiMM" />
+    </div>
+    <div class="flex-row">
+      <button class="btn btn-cyan" id="btnFetchRepos">🔍 Fetch Repos</button>
+      <button class="btn btn-cyan" id="btnOpenGitHub">↗ Open GitHub</button>
+    </div>
+    <div class="output-box mt8" id="repoOutput">— repo list will appear here —</div>
+
+    <!-- Job Board Scanner -->
+    <div class="section-hdr cyan mt8">💼 Job Board Scanner</div>
+    <div class="field">
+      <label>Search Keywords</label>
+      <input type="text" id="jobKeywords" placeholder="e.g. Firebase React Remote" />
+    </div>
+    <div class="flex-row wrap">
+      <button class="btn btn-cyan" id="btnLinkedIn">🔗 LinkedIn</button>
+      <button class="btn btn-cyan" id="btnIndeed">📋 Indeed</button>
+      <button class="btn btn-cyan" id="btnGlassdoor">🏢 Glassdoor</button>
+    </div>
+
+    <!-- Milestones -->
+    <div class="section-hdr cyan mt8">🏆 Milestones</div>
+    <div id="milestoneList"></div>
+    <button class="btn btn-cyan mt8" id="btnClaimMilestone">⭐ Claim Next Milestone</button>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════════
+       TAB 2 — DEFENSE
+       ══════════════════════════════════════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-defense">
+
+    <!-- Network Status -->
+    <div class="section-hdr magenta">🌐 Network Defense</div>
+    <div class="stat-grid">
+      <div class="stat-box">
+        <div class="stat-val magenta" id="netReqs">0</div>
+        <div class="stat-lbl">Requests</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="netBlocked">0</div>
+        <div class="stat-lbl">Blocked</div>
+      </div>
+    </div>
+    <div class="flex-row mt8">
+      <button class="btn btn-magenta" id="btnScanPage">🔬 Scan Current Tab</button>
+      <button class="btn btn-magenta" id="btnClearNet">🗑️ Clear Log</button>
+    </div>
+    <div class="output-box mt8" id="netOutput">— network scan results —</div>
+
+    <!-- DNS -->
+    <div class="section-hdr magenta mt8">🔍 DNS Lookup</div>
+    <div class="field magenta">
+      <label>Hostname</label>
+      <input type="text" id="dnsHost" placeholder="e.g. gulfnexus.org" />
+    </div>
+    <button class="btn btn-magenta" id="btnDnsLookup">🔎 Lookup</button>
+    <div class="output-box mt8" id="dnsOutput">— dns results —</div>
+
+    <!-- Auth & Passkey -->
+    <div class="section-hdr magenta mt8">🔐 Authentication</div>
+    <div class="field magenta">
+      <label>Email</label>
+      <input type="email" id="authEmail" placeholder="user@gulfnexus.org" />
+    </div>
+    <div class="field magenta">
+      <label>Password</label>
+      <input type="password" id="authPassword" placeholder="••••••••" />
+    </div>
+    <div class="flex-row">
+      <button class="btn btn-magenta" id="btnSignIn">🔑 Sign In</button>
+      <button class="btn btn-magenta" id="btnPasskey">🪪 Use Passkey</button>
+      <button class="btn btn-danger"  id="btnSignOut">⏏ Sign Out</button>
+    </div>
+    <div class="alert alert-cyan mt8" id="authStatus" style="display:none"></div>
+
+    <!-- Password Manager -->
+    <div class="section-hdr magenta mt8">🗄️ Password Manager</div>
+    <div class="field magenta">
+      <label>Site Label</label>
+      <input type="text" id="pwLabel" placeholder="e.g. firebase-admin" />
+    </div>
+    <div class="field magenta">
+      <label>Password / Secret</label>
+      <input type="password" id="pwSecret" placeholder="••••••••" />
+    </div>
+    <div class="flex-row">
+      <button class="btn btn-magenta" id="btnSavePassword">💾 Save</button>
+      <button class="btn btn-magenta" id="btnLoadPasswords">📂 Load</button>
+    </div>
+    <div class="output-box mt8" id="pwOutput">— stored credentials —</div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════════
+       TAB 3 — SOVEREIGN
+       ══════════════════════════════════════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-sovereign">
+
+    <!-- Admin Identity -->
+    <div class="section-hdr gold">👑 Sovereign Matrix Admin</div>
+    <div class="alert alert-gold" id="sovereignIdentity">
+      ⚠️ Not authenticated. Sign in via Defense tab.
+    </div>
+
+    <!-- Master Key -->
+    <div class="section-hdr gold mt8">🗝️ Master Key Management</div>
+    <div class="field gold">
+      <label>Owner UID (OWNER_UID)</label>
+      <input type="text" id="ownerUid" placeholder="Firebase UID" />
+    </div>
+    <div class="field gold">
+      <label>Admin Tier</label>
+      <select id="adminTier">
+        <option value="">— select tier —</option>
+        <option value="OWNER">OWNER (Nicholai)</option>
+        <option value="SUPER_ADMIN">SUPER_ADMIN (Sheila)</option>
+        <option value="ADMIN">ADMIN</option>
+        <option value="MODERATOR">MODERATOR</option>
+      </select>
+    </div>
+    <div class="flex-row">
+      <button class="btn btn-gold" id="btnWriteAdminKey">⚡ Write Admin Key</button>
+      <button class="btn btn-gold" id="btnReadAdminKeys">📜 Read Keys</button>
+    </div>
+    <div class="output-box mt8" id="adminKeyOutput">— admin keys —</div>
+
+    <!-- Certificates -->
+    <div class="section-hdr gold mt8">🎓 Certificates & Achievements</div>
+    <div id="certList"></div>
+    <div class="flex-row mt8">
+      <input type="text" class="flex-1" id="certTitle" placeholder="Certificate title..."
+             style="background:var(--bg-card);border:1px solid var(--border);border-radius:5px;
+                    color:var(--text);font-family:inherit;font-size:11px;padding:5px 8px;outline:none;" />
+      <button class="btn btn-gold" id="btnIssueCert">🏅 Issue</button>
+    </div>
+    <button class="btn btn-gold mt8" id="btnDownloadCerts">⬇ Download All Certs</button>
+
+    <!-- Repo Optimization -->
+    <div class="section-hdr gold mt8">✨ Amazing Grace Optimization</div>
+    <div class="field gold">
+      <label>Repo (owner/name)</label>
+      <input type="text" id="repoTarget" placeholder="GulfNexus/Amazing-Grace" />
+    </div>
+    <div class="flex-row">
+      <button class="btn btn-gold" id="btnAnalyzeRepo">🔭 Analyze</button>
+      <button class="btn btn-gold" id="btnOpenRepo">↗ Open Repo</button>
+    </div>
+    <div class="output-box mt8" id="repoAnalyzeOutput">— optimization report —</div>
+
+    <!-- Hierarchy Map -->
+    <div class="section-hdr gold mt8">🌐 Gulf Nexus Hierarchy</div>
+    <div class="card">
+      <div class="card-row">
+        <div class="card-icon">👑</div>
+        <div class="card-info">
+          <div class="card-title">Nicholai — OWNER</div>
+          <div class="card-desc">Sovereign Matrix root administrator</div>
+        </div>
+        <span class="badge badge-gold">OWNER</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-row">
+        <div class="card-icon">⚜️</div>
+        <div class="card-info">
+          <div class="card-title">Sheila — SUPER_ADMIN</div>
+          <div class="card-desc">Gulf Nexus hierarchy co-administrator</div>
+        </div>
+        <span class="badge badge-gold">SUPER_ADMIN</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-row">
+        <div class="card-icon">🌟</div>
+        <div class="card-info">
+          <div class="card-title">Star Piece Domains</div>
+          <div class="card-desc">Amazing Grace · Voice of Jesus · Gamified Matrix</div>
+        </div>
+        <span class="badge badge-cyan">NETWORK</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ Footer ═══════════════════════════════════════════════════════════════ -->
+  <div class="footer-bar">
+    <span>Gulf Nexus © 2025</span>
+    <span class="user-chip" id="footerUser">— Guest —</span>
+    <span id="footerVersion">v1.0.0</span>
+  </div>
+
+  <script src="certificates.js"></script>
+  <script src="adminKeys.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

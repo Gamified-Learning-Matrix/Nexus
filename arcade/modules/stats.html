@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stats Hub — Arcade OS</title>
+  <style>
+    :root {
+      --bg:#050510; --bg-panel:#0a0a1e; --bg-card:#10102a;
+      --cyan:#00cfff; --gold:#f5c518; --green:#00e676; --purple-light:#b48fe0;
+      --text:#e8e0ff; --text-muted:#6a7a9a; --border:rgba(0,207,255,0.18);
+      --glow-cyan:0 0 10px rgba(0,207,255,0.5);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+    a{color:var(--cyan);text-decoration:none;}
+    nav{background:var(--bg-panel);border-bottom:1px solid var(--border);padding:0.65rem 1.25rem;display:flex;align-items:center;gap:1rem;}
+    .nav-brand{font-weight:800;font-size:0.9rem;color:var(--cyan);letter-spacing:0.1em;}
+    .nav-links{display:flex;gap:0.85rem;margin-left:auto;}
+    .nav-links a{font-size:0.8rem;color:var(--text-muted);}
+    .hero{text-align:center;padding:2rem 1.5rem;background:linear-gradient(135deg,var(--bg-panel),#0a1a2a);border-bottom:2px solid var(--cyan);}
+    .hero h1{font-size:clamp(1.4rem,3.5vw,2rem);font-weight:800;color:var(--cyan);text-shadow:var(--glow-cyan);margin-bottom:0.3rem;}
+    .hero p{color:var(--text-muted);font-size:0.88rem;}
+    .container{max-width:1000px;margin:2rem auto;padding:0 1.5rem;}
+    .stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem;margin-bottom:1.5rem;}
+    .stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:1.1rem;text-align:center;}
+    .stat-card:hover{border-color:var(--cyan);box-shadow:var(--glow-cyan);}
+    .stat-val{font-size:2rem;font-weight:800;line-height:1;margin-bottom:0.2rem;}
+    .stat-val.cyan{color:var(--cyan);text-shadow:var(--glow-cyan);}
+    .stat-val.gold{color:var(--gold);}
+    .stat-val.green{color:var(--green);}
+    .stat-val.purple{color:var(--purple-light);}
+    .stat-lbl{font-size:0.7rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-muted);}
+    .section-title{font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--cyan);margin-bottom:0.75rem;}
+    .bar-row{display:flex;align-items:center;gap:0.75rem;margin-bottom:0.6rem;}
+    .bar-label{font-size:0.8rem;min-width:120px;color:var(--text);}
+    .bar-track{flex:1;background:rgba(255,255,255,0.05);border-radius:20px;height:8px;overflow:hidden;}
+    .bar-fill{height:100%;border-radius:20px;transition:width 0.8s ease;}
+    .bar-fill.cyan{background:linear-gradient(90deg,#0090b8,var(--cyan));}
+    .bar-fill.gold{background:linear-gradient(90deg,#b89010,var(--gold));}
+    .bar-fill.green{background:linear-gradient(90deg,#00a854,var(--green));}
+    .bar-fill.purple{background:linear-gradient(90deg,#5831a9,var(--purple-light));}
+    .bar-pct{font-size:0.75rem;color:var(--text-muted);min-width:35px;text-align:right;}
+    footer{background:var(--bg-panel);border-top:1px solid var(--border);text-align:center;padding:1rem;font-size:0.78rem;color:var(--text-muted);margin-top:3rem;}
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-brand">📊 Stats Hub</div>
+  <div class="nav-links">
+    <a href="../index.html">🎮 Arcade OS</a>
+    <a href="../../index.html">⭐ Star Road</a>
+  </div>
+</nav>
+<div class="hero">
+  <h1>📊 Arcade Stats Hub</h1>
+  <p>Your gamified learning analytics and Kingdom progress overview.</p>
+</div>
+<div class="container">
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-val cyan" id="sScore">0</div><div class="stat-lbl">Total Score</div></div>
+    <div class="stat-card"><div class="stat-val gold" id="sLevel">1</div><div class="stat-lbl">Level</div></div>
+    <div class="stat-card"><div class="stat-val green" id="sHealth">100%</div><div class="stat-lbl">Health</div></div>
+    <div class="stat-card"><div class="stat-val purple" id="sExp">0</div><div class="stat-lbl">Total XP</div></div>
+    <div class="stat-card"><div class="stat-val gold" id="sStars">0/7</div><div class="stat-lbl">Star Pieces</div></div>
+    <div class="stat-card"><div class="stat-val cyan" id="sMystery">0%</div><div class="stat-lbl">Mystery Meter</div></div>
+  </div>
+
+  <div class="section-title">⭐ Domain Progress</div>
+  <div id="domainBars">
+    <div class="bar-row"><span class="bar-label">Gamified Learning</span><div class="bar-track"><div class="bar-fill cyan" id="bar0" style="width:0%"></div></div><span class="bar-pct" id="pct0">0%</span></div>
+    <div class="bar-row"><span class="bar-label">Amazing Grace</span><div class="bar-track"><div class="bar-fill gold" id="bar1" style="width:0%"></div></div><span class="bar-pct" id="pct1">0%</span></div>
+    <div class="bar-row"><span class="bar-label">Voice of Jesus</span><div class="bar-track"><div class="bar-fill green" id="bar2" style="width:0%"></div></div><span class="bar-pct" id="pct2">0%</span></div>
+    <div class="bar-row"><span class="bar-label">Sovereign Matrix</span><div class="bar-track"><div class="bar-fill purple" id="bar3" style="width:0%"></div></div><span class="bar-pct" id="pct3">0%</span></div>
+    <div class="bar-row"><span class="bar-label">Limitless Nexus</span><div class="bar-track"><div class="bar-fill cyan" id="bar4" style="width:0%"></div></div><span class="bar-pct" id="pct4">0%</span></div>
+  </div>
+</div>
+<footer>Arcade OS · Stats Hub · Gulf Nexus Kingdom</footer>
+<script>
+  function getExp(){return parseInt(localStorage.getItem("gnx_exp")||"0");}
+  function getLevel(){return Math.floor(getExp()/1000)+1;}
+  function getStars(){try{return JSON.parse(localStorage.getItem("gnx_stars")||"[]");}catch{return[];}}
+
+  const exp=getExp(), level=getLevel(), stars=getStars();
+  document.getElementById("sScore").textContent  = (exp*10).toLocaleString();
+  document.getElementById("sLevel").textContent  = level;
+  document.getElementById("sHealth").textContent = "100%";
+  document.getElementById("sExp").textContent    = exp;
+  document.getElementById("sStars").textContent  = stars.length+"/7";
+  document.getElementById("sMystery").textContent= Math.min(100,Math.round((exp/5000)*100))+"%";
+
+  const domainPcts=[
+    Math.min(100,Math.round(exp/30)),
+    stars.includes(2)?100:stars.includes(4)?50:0,
+    stars.includes(3)?100:0,
+    stars.includes(4)?100:0,
+    stars.includes(5)?100:0,
+  ];
+  domainPcts.forEach((p,i)=>{
+    document.getElementById("bar"+i).style.width=p+"%";
+    document.getElementById("pct"+i).textContent=p+"%";
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arcade Terminal — Gulf Nexus</title>
+  <style>
+    :root {
+      --bg:#020208; --bg-panel:#040410; --green:#00e676; --green-dim:#00a854;
+      --cyan:#00cfff; --gold:#f5c518; --text-muted:#4a6a4a; --border:rgba(0,230,118,0.2);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Courier New',monospace;background:var(--bg);color:var(--green);min-height:100vh;display:flex;flex-direction:column;}
+    body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,230,118,0.015) 2px,rgba(0,230,118,0.015) 4px);pointer-events:none;z-index:100;}
+    .titlebar{background:var(--green);color:var(--bg);font-size:0.72rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;padding:5px 14px;display:flex;align-items:center;gap:0.75rem;}
+    .nav-links{margin-left:auto;display:flex;gap:0.75rem;}
+    .nav-links a{color:var(--bg);font-size:0.72rem;font-weight:700;text-decoration:none;}
+    .output{flex:1;padding:1rem 1.25rem;font-size:12px;line-height:1.75;overflow-y:auto;max-height:calc(100vh - 80px);}
+    .output .line{display:block;}
+    .output .line.cmd{color:var(--green);}
+    .output .line.res{color:var(--green-dim);}
+    .output .line.sys{color:var(--cyan);}
+    .output .line.err{color:#ff5555;}
+    .output .line.gold{color:var(--gold);}
+    .input-row{display:flex;align-items:center;border-top:1px solid var(--border);padding:0.5rem 1.25rem;background:var(--bg-panel);}
+    .prompt{color:var(--green);white-space:nowrap;font-size:12px;}
+    .term-input{flex:1;background:transparent;border:none;outline:none;font-family:'Courier New',monospace;font-size:12px;color:var(--green);caret-color:var(--green);padding:0 0.4rem;}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+    .blink{animation:blink 1s step-end infinite;}
+  </style>
+</head>
+<body>
+<div class="titlebar">
+  ● ARCADE TERMINAL — GULF NEXUS OS v1.0.0
+  <div class="nav-links">
+    <a href="../index.html">← Arcade OS</a>
+    <a href="../../index.html">Star Road</a>
+  </div>
+</div>
+<div class="output" id="output">
+  <span class="line sys">  ██████╗ ███╗   ██╗██╗  ██╗</span>
+  <span class="line sys">  ██╔════╝████╗  ██║╚██╗██╔╝</span>
+  <span class="line sys">  ██║  ███╗██╔██╗ ██║ ╚███╔╝ </span>
+  <span class="line sys">  ██║   ██║██║╚██╗██║ ██╔██╗ </span>
+  <span class="line sys">  ╚██████╔╝██║ ╚████║██╔╝ ██╗</span>
+  <span class="line sys">   ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═╝</span>
+  <span class="line"> </span>
+  <span class="line gold">  GULF NEXUS ARCADE OS · TERMINAL MODULE</span>
+  <span class="line res">  Star Road Telemetry: ACTIVE</span>
+  <span class="line res">  Kingdom Status: ONLINE</span>
+  <span class="line"> </span>
+  <span class="line">Type <span style="color:var(--gold)">help</span> to see available commands.</span>
+  <span class="line"> </span>
+  <span class="blink">█</span>
+</div>
+<div class="input-row">
+  <span class="prompt">GNX&gt;&nbsp;</span>
+  <input type="text" class="term-input" id="termInput" autocomplete="off" spellcheck="false" autofocus />
+</div>
+<script>
+const output   = document.getElementById("output");
+const termInput= document.getElementById("termInput");
+
+const HELP_TEXT=`
+Available commands:
+  help          — Show this help
+  about         — About Gulf Nexus
+  status        — System status
+  score         — Your arcade score
+  level         — Your current level
+  stars         — Star Piece collection
+  navigate <n>  — Go to: arcade, ministry, listings, starroad
+  clear         — Clear terminal
+  version       — OS version info
+  whoami        — Current user info
+`.trim();
+
+const COMMANDS = {
+  help:    ()=>HELP_TEXT,
+  about:   ()=>"Gulf Nexus Arcade OS — Gamified Learning Matrix\nUnifying ministry, gameplay, and Sovereign administration.",
+  status:  ()=>`ARCADE OS    : RUNNING\nSTAR ROAD    : CONNECTED\nFIREBASE     : CONFIGURED\nMISTERY METER: ${getMystery()}%\nUPTIME       : ${getUptime()}`,
+  version: ()=>"Gulf Nexus Arcade OS v1.0.0\nManifest V3 Chrome Extension integrated\nStar Road Telemetry: Active",
+  whoami:  ()=>`User    : ${localStorage.getItem("gnx_user")||"Guest"}\nUID     : ${localStorage.getItem("gnx_uid")||"—"}\nLevel   : ${getLevel()}\nScore   : ${getScore()}`,
+  score:   ()=>`Score: ${getScore().toLocaleString()} pts`,
+  level:   ()=>`Level: ${getLevel()} (${getExp() % 1000}/1000 XP to next)`,
+  stars:   ()=>{
+    let s=[];try{s=JSON.parse(localStorage.getItem("gnx_stars")||"[]");}catch{}
+    const names=["Wisdom","Harmony","Shelter","Voice","Power","Grace","Nexus"];
+    return names.map((n,i)=>`  Star of ${n}: ${s.includes(i)?"✅ Unlocked":"🔒 Locked"}`).join("\n");
+  },
+  clear:   ()=>{output.innerHTML='<span class="blink">█</span>';return null;},
+  navigate:(arg)=>{
+    const urls={arcade:"../index.html",ministry:"../../ministry/index.html",listings:"../../listings/tampa.html",starroad:"../../index.html"};
+    const dest=urls[arg];
+    if(!dest)return`Unknown destination "${arg}". Options: arcade, ministry, listings, starroad`;
+    setTimeout(()=>location.href=dest,600);
+    return `Navigating to ${arg}…`;
+  },
+};
+
+function getExp(){return parseInt(localStorage.getItem("gnx_exp")||"0");}
+function getLevel(){return Math.floor(getExp()/1000)+1;}
+function getScore(){return getExp()*10;}
+function getMystery(){return Math.min(100,Math.round((getExp()/5000)*100));}
+function getUptime(){const s=Math.floor((Date.now()-performance.timeOrigin)/1000);return `${Math.floor(s/60)}m ${s%60}s`;}
+
+function appendLine(text, cls="res"){
+  text.split("\n").forEach(t=>{
+    const span=document.createElement("span");
+    span.className="line "+cls;
+    span.textContent=t;
+    output.appendChild(span);
+  });
+  const blink=output.querySelector(".blink");
+  if(blink) output.removeChild(blink);
+  const b=document.createElement("span");
+  b.className="blink"; b.textContent="█";
+  output.appendChild(b);
+  output.scrollTop=output.scrollHeight;
+}
+
+termInput.addEventListener("keydown",(e)=>{
+  if(e.key!=="Enter")return;
+  const raw=termInput.value.trim();
+  termInput.value="";
+  if(!raw)return;
+  appendLine(`GNX> ${raw}`,"cmd");
+  const [cmd,...args]=raw.toLowerCase().split(/\s+/);
+  const fn=COMMANDS[cmd];
+  if(!fn){appendLine(`Command not found: "${cmd}". Type "help" for list.`,"err");}
+  else{
+    const result=fn(args.join(" "));
+    if(result!==null)appendLine(result);
+  }
+});
+</script>
+</body>
+</html>
